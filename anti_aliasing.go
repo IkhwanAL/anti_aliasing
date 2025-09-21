@@ -38,7 +38,6 @@ func AntiAliasing(realImg *image.RGBA, img *image.Gray) *image.RGBA {
 		for x := 0; x < realImg.Bounds().Dx(); x++ {
 			clr := img.GrayAt(x, y)
 
-			// fmt.Printf("%d ",clr.Y)
 			edgeStrength := float64(clr.Y) / float64(maxEdgeValue)
 
 			if edgeStrength > 1 {
