@@ -1,5 +1,5 @@
 # anti_aliasing
-Experiment With Anti Aliasing
+Experiment With Anti Aliasing And Implement It In Image
 
 ## What the motivation of this project
 Well i overheard in youtube on how anti aliasing work, and as a person who playing games and always configure the graphic setting before playing.
