@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+
 )
 
 func toRGBA(img image.Image) *image.RGBA {
@@ -108,11 +109,12 @@ func main() {
 	rgbaImg := toRGBA(img)
 	grayImg := toGray(img)
 
-	newImageSet := EdgeDetection(*grayImg)
+	newImageSet, horizontalEdge, verticalEdge := EdgeDetection(*grayImg)
 
 	OutputImageForDebugResult(newImageSet, "./resImg/edge.jpg")
 
-	colorImg := AntiAliasing(rgbaImg, newImageSet)
+	// colorImg := AntiAliasing(rgbaImg, newImageSet)
+	colorImg := EdgeAwareAntiAliasing(rgbaImg, newImageSet, horizontalEdge, verticalEdge)
 
 	OutputImageForDebugResult(colorImg, "./resImg/anti-aliasing.jpg")
 

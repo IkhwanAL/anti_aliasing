@@ -15,7 +15,7 @@ func allocNewArray[V int | float64 | uint8](x0, y0 int) [][]V {
 	return arr
 }
 
-func EdgeDetection(img image.Gray) *image.Gray {
+func EdgeDetection(img image.Gray) (*image.Gray, [][]float64, [][]float64) {
 	Gx := allocNewArray[float64](img.Bounds().Dx(), img.Bounds().Dy())
 	Gy := allocNewArray[float64](img.Bounds().Dx(), img.Bounds().Dy())
 
@@ -35,33 +35,49 @@ func EdgeDetection(img image.Gray) *image.Gray {
 
 	for y := newPaddedImage.Bounds().Min.Y + 1; y < newPaddedImage.Bounds().Max.Y-1; y++ {
 		for x := newPaddedImage.Bounds().Min.X + 1; x < newPaddedImage.Bounds().Max.X-1; x++ {
-			horizontal := EdgeCalculation(newPaddedImage, x, y, horintalKernelConvluation)
-
-			Gx[y-1][x-1] = horizontal
-
-			vertical := EdgeCalculation(newPaddedImage, x, y, verticalKernelConvluation)
-
-			Gy[y-1][x-1] = vertical
-
+			Gx[y-1][x-1] = EdgeCalculation(newPaddedImage, x, y, horintalKernelConvluation)
+			Gy[y-1][x-1] = EdgeCalculation(newPaddedImage, x, y, verticalKernelConvluation)
 		}
 	}
 
 	imgGray := image.NewGray(image.Rect(0, 0, img.Bounds().Dx(), img.Bounds().Dy()))
+	maxMagnitude := 0.0
 
 	for y := 0; y < img.Bounds().Dy(); y++ {
 		for x := 0; x < img.Bounds().Dx(); x++ {
 			gx := Gx[y][x]
 			gy := Gy[y][x]
 
-			magnitude := math.Round(math.Sqrt(math.Pow(gx, 2) + math.Pow(gy, 2)))
+			magnitude := math.Hypot(gx, gy)
 
-			gray := color.Gray{Y: uint8(magnitude)}
+			if magnitude > maxMagnitude {
+				maxMagnitude = magnitude
+			}
+		}
+	}
+
+	for y := 0; y < img.Bounds().Dy(); y++ {
+		for x := 0; x < img.Bounds().Dx(); x++ {
+			gx := Gx[y][x]
+			gy := Gy[y][x]
+
+			magnitude := math.Hypot(gx, gy)
+			norm := magnitude
+
+			// fmt.Printf("%0.f ", magnitude)
+
+			if magnitude > 0 {
+				norm = (magnitude / maxMagnitude) * 255.0
+			}
+
+			gray := color.Gray{Y: uint8(norm)}
+			// gray := color.Gray{Y: uint8(magnitude)}
 
 			imgGray.SetGray(x, y, gray)
 		}
 	}
 
-	return imgGray
+	return imgGray, Gx, Gy
 }
 
 func EdgeCalculation(img *image.Gray, x, y int, kernelConvolution [3][3]int) float64 {
@@ -89,7 +105,6 @@ func EdgeCalculation(img *image.Gray, x, y int, kernelConvolution [3][3]int) flo
 	bottomCenter := int(pixelBottomCenter) * kernelConvolution[2][1]
 	bottomRight := int(pixelBottomRight) * kernelConvolution[2][2]
 
-	sumPix := float64((topLeft + topCenter + topRight + int(middleLeft) + int(middleCenter) + int(middleRight) + int(bottomLeft) + int(bottomCenter) + int(bottomRight))) / 9
-
+	sumPix := float64((topLeft + topCenter + topRight + int(middleLeft) + int(middleCenter) + int(middleRight) + int(bottomLeft) + int(bottomCenter) + int(bottomRight)))
 	return sumPix
 }
